@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户登录</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,400,700" type="text/css">
+    <!-- 引入Bootstrap CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!--添加toastr弹框组件-->
+    <link href="css/toastr.min.css" type="text/css" rel="stylesheet"/>
+    <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+<div class="layer1"></div>
+<div class="layer2"></div>
+<div class="layer3"></div>
+<div class="title">
+    学生成绩管理系统
+</div>
+<!--以下是登录和注册的容器-->
+<div class="container" id="app">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs">
+                        <li class="nav-item">
+                            <a class="nav-link  active" id="login-tab" data-toggle="tab" href="#login" role="tab"
+                               aria-controls="login"
+                               aria-selected="true">登录</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="register-tab" data-toggle="tab" href="#register" role="tab"
+                               aria-controls="register"
+                               aria-selected="false">注册</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="login" role="tabpanel" aria-labelledby="login-tab">
+                            <form>
+                                <div class="form-group">
+                                    <label for="username" style="color: #4D70BDFF">账号</label>
+                                    <input type="email" class="form-control" id="username"
+                                           placeholder="请输入注册手机/电子邮箱" v-model="loginUser.username">
+                                </div>
+                                <div class="form-group">
+                                    <label for="password" style="color: #4D70BDFF">密码</label>
+                                    <input type="password" class="form-control" id="password"
+                                           placeholder="请输入密码" v-model="loginUser.password">
+                                </div>
+                                <div class="form-group">
+                                    <img :src="randomCodeUrl" id="randomCodeImg"
+                                         style="width: 120px;cursor: pointer"
+                                         title="看不清，点击换一张" @click="refreshRandomCode">
+                                </div>
+                                <div class="form-group">
+                                    <label for="loginRandomCode" style="color: #4D70BDFF">验证码</label>
+                                    <input type="text" class="form-control" id="loginRandomCode"
+                                           placeholder="请输入验证码" v-model="loginUser.randomCode">
+                                </div>
+                                <button type="button" class="btn btn-primary" @click="doLogin"
+                                        style="margin: 0px auto; width:120px; display: block">登录
+                                </button>
+                            </form>
+                        </div>
+                        <div class="tab-pane fade" id="register" role="tabpanel" aria-labelledby="register-tab">
+                            <form id="regForm">
+                                <div class="form-group">
+                                    <label for="registerEmail" style="color: #4D70BDFF">注册账号</label>
+                                    <input type="email" name="username" class="form-control" id="registerEmail"
+                                           placeholder="请输入手机号码/电子邮箱" v-model="regUser.username">
+                                </div>
+                                <div class="form-group">
+                                    <label for="registerPassword" style="color: #4D70BDFF">密码</label>
+                                    <input type="password" name="password" class="form-control" id="registerPassword"
+                                           placeholder="请输入注册密码" v-model="regUser.password">
+                                </div>
+                                <div class="form-group">
+                                    <label for="confirmPassword" style="color: #4D70BDFF">确认密码</label>
+                                    <input type="password" name="confirmPass" class="form-control" id="confirmPassword"
+                                           placeholder="请输入确认密码" v-model="regUser.confirmPass">
+                                </div>
+                                <br/>
+                                <br/>
+                                <button type="button" class="btn btn-success"
+                                        style="margin: 0px auto; width:120px; display: block" @click="doReg">注册
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--首先引入jquery类库-->
+<script src="js/jquery.min.js"></script>
+<script src="js/toastr.min.js" type="application/javascript"></script>
+
+<!-- 引入Bootstrap JS -->
+<script src="js/bootstrap.min.js"></script>
+<script src="js/outils.min.js"></script>
+<script src="js/myutil.js"></script>
+<script src="js/auth.js"></script>
+
+<!--前端项目必须引入的库-开始-->
+<!---vue2.x和axios库-->
+<script src="js/vue.min.js"></script>
+<script src="js/axios.min.js"></script>
+
+<!--引入前端的接口--->
+<script src="api/baseUrl.js"></script>
+<script src="js/auth.js"></script>
+<script src="api/users.js"></script>
+<!--前端项目必须引入的库-结束-->
+
+<!--安装模块来引入资源-->
+<script type="module">
+    //登录认证的判断
+    function loginSuccess(userName, token, uid, role) {
+        // 原有存储：用户名、Token
+        window.outils.setCookie("currentUserName", userName, 2);
+        window.outils.setCookie("currentToken", token, 2);
+        // 新增存储：用户ID、角色（admin/normal）
+        window.outils.setCookie("currentUserId", uid, 2);
+        window.outils.setCookie("currentUserRole", role, 2);
+
+        toastr.success("登录成功！");
+        setTimeout(() => {
+            window.location.href = "index.html";
+        }, 1000);
+    }
+</script>
+
+<script>
+    var messageOpts = {
+        "closeButton": true,// 是否显示关闭按钮
+        "showDuration": "1000",// 显示的动画时间
+        "hideDuration": "1000",// 消失的动画时间
+        "positionClass": "toast-bottom-left",// 弹出窗的位置
+        "showMethod": "fadeIn",//显示时的动画方式
+        "hideMethod": "fadeOut", //消失时的动画方式
+        "allowHtml": true,// 允许弹窗内容包含 HTML 语言
+        "timeOut": "2000",// 弹窗展现时间
+    };
+    toastr.options = messageOpts;
+
+    // 补充：获取当前日期的工具方法（适配index页的逻辑）
+    function getCurrentDateString() {
+        let date = new Date();
+        let year = date.getFullYear();
+        let month = (date.getMonth() + 1).toString().padStart(2, '0');
+        let day = date.getDate().toString().padStart(2, '0');
+        let dateString = `${year}-${month}-${day}`;
+        return dateString;
+    }
+</script>
+
+<script>
+    let vm = new Vue({
+        el: '#app',
+        data: {
+            token: '', //客户端的一个标识，程序来生成
+            randomCodeUrl: '',
+            loginUser: {
+                username: "",
+                password: "",
+                randomCode: ""
+            },
+            regUser: {
+                username: "",
+                password: "",
+                confirmPass: ""
+            },
+            // ========== 新增：index页查询功能需要的data ==========
+            currentLoginUserName: "",
+            isSelectedAll: false,
+            selectedUserIds: [],
+            usersList: [],
+            pager: {},
+            newUser: {
+                username: "",
+                password: "",
+                gender: "男",
+                birthday: getCurrentDateString(),
+                major: ""
+            },
+            currentEditUser: {
+                username: "",
+                password: "",
+                gender: "男",
+                birthday: getCurrentDateString(),
+                major: ""
+            },
+            currentDeleteUid: -1,
+            queryBanji: "" // 班级查询参数
+        },
+        async mounted() {
+            await this.generateToken();
+            console.log("-------当前客户端的标识符---------");
+            console.log(this.token);
+            this.refreshRandomCode();
+        },
+        methods: {
+            // 原有：生成前端token
+            async generateToken() {
+                const {nanoid} = await import('./js/nanoid/nanoid.js');
+                this.token = nanoid(16);
+            },
+
+            // 原有：刷新验证码
+            refreshRandomCode: function () {
+                this.randomCodeUrl = baseUrl + '/commons/hutool/randomCode?token=' + this.token + '&tm=' + new Date().getTime();
+            },
+
+            // 原有：登录逻辑
+            doLogin: function () {
+                console.log("执行用户登录....");
+                console.log("--------要登录的用户对象是---------")
+                console.log(this.loginUser);
+                login(this.loginUser, this.token, this.loginUser.randomCode).then(resp => {
+                    if (resp.code === 200) {
+                        toastr.success(resp.msg);
+                        console.log("--------登录成功之后的用户对象---------")
+                        console.log(resp.data);
+                        console.log("-----------服务器返回的令牌(会员卡号)-------------")
+                        console.log(resp.token);
+
+                        //把用户名和token保存到浏览器的cookie里面
+                        window.outils.setCookie("currentToken",resp.token,30); //30天之后自动过期。
+                        window.outils.setCookie("currentUserName",resp.data.username,30);//30天之后自动过期。
+                        window.outils.setCookie("currentUserId", resp.data.uid, 30);
+                        // 存用户角色（resp.data.role是后端返回的admin/normal）
+                        window.outils.setCookie("currentUserRole", resp.data.role, 30);
+
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 1000)
+                    } else {
+                        toastr.error(resp.msg);
+                    }
+                })
+            },
+
+            // 原有：注册逻辑
+            doReg: async function () {
+                console.log("执行用户注册....")
+                console.log("--------要注册的用户对象是---------")
+                console.log(this.regUser);
+
+                //简单的表单验证
+                if (this.regUser.password !== this.regUser.confirmPass) {
+                    toastr.error("两次输入的密码不一致！");
+                    return;
+                }
+
+                if (this.regUser.password.length < 6) {
+                    toastr.error("密码长度不能小于6位！");
+                    return;
+                }
+
+                //检查用户名是否已经被注册
+                let canReg = true;
+                console.log("---------要注册的用户名---------")
+                console.log(this.regUser.username);
+                canReg = await checkUsernameIsReg(this.regUser.username);
+                console.log("能否注册：" + canReg); //false; true
+                if (!canReg) {
+                    toastr.error("用户名已经被注册！");
+                    return;
+                }
+
+                reg(this.regUser).then(resp => {
+                    if (resp.code === 200) {
+                        toastr.success(resp.msg);
+                        setTimeout(() => {
+                            window.location.href = 'login.html';
+                        }, 1000)
+                    } else {
+                        toastr.error(resp.msg);
+                    }
+                })
+            },
+
+            // ========== 新增：index页需要的核心方法 ==========
+            // 分页查询用户
+            queryUsersListByPager: function (currentPageNum) {
+                console.log("当前要查询的分页编号是："+currentPageNum);
+                queryUserByPage(currentPageNum).then(resp => {
+                    if (resp.code === 200) {
+                        this.pager = resp.data;
+                        this.usersList = this.pager.records;
+                    } else {
+                        toastr.error(resp.msg);
+                    }
+                });
+            },
+
+            // 按班级查询核心方法
+            queryByBanji: function () {
+                // 空值校验
+                if (!this.queryBanji.trim()) {
+                    toastr.warning("请输入要查询的班级名称！");
+                    return;
+                }
+                // 调用后端接口
+                queryByBanji(this.queryBanji).then(resp => {
+                    if (resp.code === 200) {
+                        // 渲染查询结果（覆盖原有列表）
+                        this.usersList = resp.data;
+                        // 重置分页状态（适配原有分页UI）
+                        this.pager = {
+                            total: resp.data.length,
+                            size: resp.data.length,
+                            current: 1,
+                            pages: 1,
+                            records: resp.data
+                        };
+                        toastr.success(`查询到 ${resp.data.length} 条数据`);
+                    } else if (resp.code === 404) {
+                        toastr.info("未查询到该班级的学生数据");
+                        this.usersList = [];
+                        this.pager.total = 0;
+                    } else {
+                        toastr.error("查询失败：" + resp.msg);
+                    }
+                }).catch(err => {
+                    toastr.error("网络异常，请稍后重试");
+                    console.error("查询接口异常：", err);
+                });
+            },
+
+            // 新增用户
+            addUserInfo: async function () {
+                console.log("---------添加用户信息---------");
+                console.log(this.newUser);
+
+                let canAdd = true;
+                canAdd = await checkUsernameIsReg(this.newUser.username);
+
+                if (!canAdd) {
+                    toastr.error("用户名已经被注册！");
+                    return;
+                }
+
+                addUser(this.newUser).then(resp => {
+                    if (resp.code === 200) {
+                        toastr.success(resp.msg);
+                        this.queryUsersListByPager(1);
+                        // 重置新增表单
+                        this.newUser = {
+                            username: "",
+                            password: "",
+                            gender: "男",
+                            birthday: getCurrentDateString(),
+                            major: ""
+                        };
+                    } else {
+                        toastr.error(resp.msg);
+                    }
+                })
+            },
+
+            // 编辑用户弹窗
+            showEditUserModel: function (uid) {
+                console.log("要编辑的用户编号是：" + uid);
+                queryUserByUid(uid).then(resp => {
+                    if (resp.code === 200) {
+                        this.currentEditUser = resp.data;
+                    }
+                })
+            },
+
+            // 更新用户
+            updateUserInfo: function () {
+                updateUser(this.currentEditUser).then(resp => {
+                    if (resp.code === 200) {
+                        toastr.success(resp.msg);
+                        this.queryUsersListByPager(1);
+                    } else {
+                        toastr.error(resp.msg);
+                    }
+                });
+            },
+
+            // 删除用户弹窗
+            showDeleteModel: function (uid) {
+                this.currentDeleteUid = uid;
+                console.log("要删除的用户编号是：" + uid)
+            },
+
+            // 删除用户
+            deleteUserInfo: function () {
+                deleteUserByUid(this.currentDeleteUid).then(resp => {
+                    if (resp.code === 200) {
+                        toastr.success(resp.msg);
+                        this.queryUsersListByPager(1);
+                    } else {
+                        toastr.error(resp.msg);
+                    }
+                });
+            },
+
+            // 注销登录
+            doLogout: function () {
+                window.outils.removeCookie("currentUserName");
+                window.outils.removeCookie("currentToken");
+                toastr.success("注销成功！");
+                setTimeout(function () {
+                    window.location.href = "login.html";
+                }, 1000);
+            },
+
+            // 批量删除
+            deleteBatchList:function(){
+                if(this.selectedUserIds.length>0){
+                    deleteBatch(this.selectedUserIds).then(resp=>{
+                        if(resp.code === 200){
+                            toastr.success(resp.msg);
+                            this.queryUsersListByPager(1);
+                            this.isSelectedAll=false;
+                        }else{
+                            toastr.error(resp.msg);
+                        }
+                    })
+                }else{
+                    toastr.error("请选择要删除的用户！");
+                }
+            },
+
+            // 全选/取消全选
+            changeSelectedAllStatus:function(){
+                this.isSelectedAll = !this.isSelectedAll;
+                if(this.isSelectedAll){
+                    this.selectedUserIds = [];
+                    for(let i=0;i<this.usersList.length;i++){
+                        this.selectedUserIds.push(this.usersList[i].uid);
+                    }
+                }else{
+                    this.selectedUserIds = [];
+                }
+            }
+        }
+    })
+</script>
+
+<style>
+    .toast-bottom-left {
+        position: relative;
+        top: 5px;
+        left: 40%;
+        width: 300px;
+    }
+</style>
+</body>
+</html>
