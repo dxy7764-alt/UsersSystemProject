@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户登录 - 学生成绩管理系统</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,400,700" type="text/css">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/toastr.min.css" type="text/css" rel="stylesheet"/>
+    <style>
+        /* 全局基础样式 */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: url("https://bing.ee123.net/img/") no-repeat center center fixed;
+            background-size: cover;
+            overflow: hidden;
+            font-family: "微软雅黑", "黑体", sans-serif;
+        }
+
+        /* 导航栏样式 - 固定在页面最顶部 */
+        .navbar-custom {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 9999 !important;
+            background-color: rgba(15, 25, 35, 0.6) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 0 !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
+            width: 100% !important;
+            padding: 0.5rem 1rem !important;
+        }
+
+        .navbar-custom .navbar-nav {
+            justify-content: center;
+            width: 100%;
+        }
+
+        .navbar-custom .nav-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+            padding: 10px 18px !important;
+            margin: 0 4px !important;
+            border-radius: 6px !important;
+            font-size: 14px !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .navbar-custom .nav-link:hover {
+            color: #fff !important;
+            background-color: rgba(142, 197, 252, 0.2) !important;
+        }
+
+        .navbar-custom .navbar-toggler {
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            margin-left: auto;
+        }
+
+        .navbar-custom .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.8%29' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+        }
+
+        /* 系统标题样式 - 无黑色背景，仅纯白+蓝色发光 */
+        .title {
+            position: absolute !important;
+            top: 80px !important;
+            left: 0 !important;
+            right: 0 !important;
+            text-align: center !important;
+            font-family: "黑体" !important;
+            font-weight: 700 !important; /* 加粗醒目 */
+            font-size: 40px !important;
+            letter-spacing: 5px !important;
+            color: #ffffff !important; /* 纯白基础色 */
+            /* 仅保留蓝色发光+光晕，无黑色阴影、无黑色背景 */
+            text-shadow:
+                    0 0 8px #8ec5fc, /* 淡蓝色发光 */
+                    0 0 15px rgba(142, 197, 252, 0.9) !important; /* 强化蓝色光晕 */
+            display: inline-block !important;
+            margin: 0 auto !important;
+            z-index: 999 !important; /* 确保标题在最上层 */
+        }
+
+        /* 登录容器样式 */
+        .login-container {
+            position: absolute !important;
+            top: 160px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            width: 300px !important;
+            color: #fff !important;
+            z-index: 99 !important;
+        }
+
+        /* 登录卡片样式 */
+        .card{
+            background-color: rgba(15, 25, 35, 0.75) !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            border-radius: 12px !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
+            padding: 20px !important;
+            height: 446px !important;
+        }
+
+        .card .card-body {
+            background-color: transparent !important;
+            padding: 0 !important;
+        }
+
+        /* 选项卡样式 */
+        .nav-tabs {
+            border-bottom: 1px solid rgba(255,255,255,0.2) !important;
+            margin-bottom: 20px !important;
+        }
+        .nav-tabs .nav-link {
+            color: rgba(255,255,255,0.8) !important;
+            border: none !important;
+            padding: 8px 0 !important;
+            margin-right: 20px !important;
+            font-size: 16px !important;
+        }
+        .nav-tabs .nav-link.active {
+            color: #fff !important;
+            border-bottom: 2px solid #8ec5fc !important;
+            background-color: transparent !important;
+        }
+
+        /* 表单样式 */
+        .form-group {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 8px !important;
+            margin-bottom: 15px !important;
+        }
+        .form-label {
+            color: #4D70BDFF !important;
+            font-size: 14px !important;
+        }
+        .form-control {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            color: #fff !important;
+        }
+        .form-control:focus {
+            background-color: rgba(255, 255, 255, 0.15) !important;
+            border-color: #8ec5fc !important;
+            outline: none !important;
+        }
+        .form-control::placeholder {
+            color: rgba(255,255,255,0.6) !important;
+        }
+
+        /* 验证码图片样式 */
+        #randomCodeImg {
+            width: 120px !important;
+            cursor: pointer !important;
+            border-radius: 6px !important;
+            margin-bottom: 5px !important;
+        }
+
+        /* 按钮样式 */
+        .btn-primary {
+            background-color: rgba(142, 197, 252, 0.6) !important;
+            border: none !important;
+            border-radius: 6px !important;
+            height: 40px !important;
+            font-size: 16px !important;
+            font-weight: 500 !important;
+            color: #1a2b3c !important;
+            width: 120px !important;
+            transition: all 0.3s ease !important;
+            margin: 0 auto !important;
+            display: block !important;
+        }
+        .btn-primary:hover {
+            background-color: rgba(100, 181, 246, 0.9) !important;
+            box-shadow: 0 4px 12px rgba(142, 197, 252, 0.4) !important;
+        }
+
+        .btn-success {
+            background-color: rgba(107, 185, 107, 0.6) !important;
+            border: none !important;
+            border-radius: 6px !important;
+            height: 40px !important;
+            font-size: 16px !important;
+            font-weight: 500 !important;
+            color: #fff !important;
+            width: 120px !important;
+            transition: all 0.3s ease !important;
+            margin: 0 auto !important;
+            display: block !important;
+        }
+        .btn-success:hover {
+            background-color: rgba(85, 168, 85, 0.9) !important;
+            box-shadow: 0 4px 12px rgba(107, 185, 107, 0.4) !important;
+        }
+
+        /* 底部版权样式 */
+        .footer{
+            position: absolute !important;
+            top: 92% !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            height: 20px !important;
+            text-align: center !important;
+            color: #fff !important;
+            opacity: 0.8 !important;
+            font-size: 14px !important;
+        }
+
+        #username, #password {
+            opacity: 0.6 !important;
+        }
+    </style>
+</head>
+<body>
+<!-- 导航栏 - 独立在最顶部 -->
+<nav class="navbar navbar-expand-lg navbar-custom">
+    <div class="container-fluid">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="切换导航">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="index.html">首页</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="help-center.html">帮助中心</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- 系统标题 -->
+<div class="title">学生成绩管理系统</div>
+
+<!-- 登录容器 -->
+<div class="login-container" id="app">
+    <div class="card">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs">
+                <li class="nav-item">
+                    <a class="nav-link active" id="login-tab" data-toggle="tab" href="#login" role="tab"
+                       aria-controls="login" aria-selected="true">登录</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="register-tab" data-toggle="tab" href="#register" role="tab"
+                       aria-controls="register" aria-selected="false">注册</a>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content">
+                <!-- 登录选项卡 -->
+                <div class="tab-pane fade show active" id="login" role="tabpanel" aria-labelledby="login-tab">
+                    <form>
+                        <div class="form-group">
+                            <label for="username" class="form-label">账号</label>
+                            <input type="email" class="form-control" id="username"
+                                   placeholder="请输入注册手机/电子邮箱" v-model="loginUser.username">
+                        </div>
+                        <div class="form-group">
+                            <label for="password" class="form-label">密码</label>
+                            <input type="password" class="form-control" id="password"
+                                   placeholder="请输入密码" v-model="loginUser.password">
+                        </div>
+                        <div class="form-group">
+                            <img :src="randomCodeUrl" id="randomCodeImg"
+                                 title="看不清，点击换一张" @click="refreshRandomCode">
+                        </div>
+                        <div class="form-group">
+                            <label for="loginRandomCode" class="form-label">验证码</label>
+                            <input type="text" class="form-control" id="loginRandomCode"
+                                   placeholder="请输入验证码" v-model="loginUser.randomCode">
+                        </div>
+                        <button type="button" class="btn btn-primary" @click="doLogin">登录</button>
+                    </form>
+                </div>
+
+                <!-- 注册选项卡 -->
+                <div class="tab-pane fade" id="register" role="tabpanel" aria-labelledby="register-tab">
+                    <form id="regForm">
+                        <div class="form-group">
+                            <label for="registerEmail" class="form-label">注册账号</label>
+                            <input type="email" name="username" class="form-control" id="registerEmail"
+                                   placeholder="请输入手机号码/电子邮箱" v-model="regUser.username">
+                        </div>
+                        <div class="form-group">
+                            <label for="registerPassword" class="form-label">密码</label>
+                            <input type="password" name="password" class="form-control" id="registerPassword"
+                                   placeholder="请输入注册密码" v-model="regUser.password">
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword" class="form-label">确认密码</label>
+                            <input type="password" name="confirmPass" class="form-control" id="confirmPassword"
+                                   placeholder="请输入确认密码" v-model="regUser.confirmPass">
+                        </div>
+                        <button type="button" class="btn btn-success" @click="doReg">注册</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 底部版权 -->
+<div class="footer">© 2025 学生成绩管理系统 版权所有</div>
+
+<!-- 脚本文件 -->
+<script src="js/jquery.min.js"></script>
+<script src="js/toastr.min.js" type="application/javascript"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/outils.min.js"></script>
+<script src="js/myutil.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/vue.min.js"></script>
+<script src="js/axios.min.js"></script>
+<script src="api/baseUrl.js"></script>
+<script src="api/users.js"></script>
+
+<!-- 登录成功处理 -->
+<script type="module">
+    function loginSuccess(userName, token, uid, role) {
+        window.outils.setCookie("currentUserName", userName, 2);
+        window.outils.setCookie("currentToken", token, 2);
+        window.outils.setCookie("currentUserId", uid, 2);
+        window.outils.setCookie("currentUserRole", role, 2);
+        toastr.success("登录成功！");
+        setTimeout(() => {
+            window.location.href = "index.html";
+        }, 1000);
+    }
+</script>
+
+<!-- Toastr 配置 -->
+<script>
+    var messageOpts = {
+        "closeButton": true,
+        "showDuration": "1000",
+        "hideDuration": "1000",
+        "positionClass": "toast-bottom-left",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut",
+        "allowHtml": true,
+        "timeOut": "2000",
+    };
+    toastr.options = messageOpts;
+
+    // 获取当前日期字符串
+    function getCurrentDateString() {
+        let date = new Date();
+        let year = date.getFullYear();
+        let month = (date.getMonth() + 1).toString().padStart(2, '0');
+        let day = date.getDate().toString().padStart(2, '0');
+        let dateString = `${year}-${month}-${day}`;
+        return dateString;
+    }
+</script>
+
+<!-- Vue 核心逻辑 -->
+<script>
+    let vm = new Vue({
+        el: '#app',
+        data: {
+            token: '',
+            randomCodeUrl: '',
+            loginUser: {
+                username: "",
+                password: "",
+                randomCode: ""
+            },
+            regUser: {
+                username: "",
+                password: "",
+                confirmPass: ""
+            },
+            currentLoginUserName: "",
+            isSelectedAll: false,
+            selectedUserIds: [],
+            usersList: [],
+            pager: {},
+            newUser: {
+                username: "",
+                password: "",
+                gender: "男",
+                birthday: getCurrentDateString(),
+                major: ""
+            },
+            currentEditUser: {
+                username: "",
+                password: "",
+                gender: "男",
+                birthday: getCurrentDateString(),
+                major: ""
+            },
+            currentDeleteUid: -1,
+            queryBanji: ""
+        },
+        async mounted() {
+            await this.generateToken();
+            console.log("-------当前客户端的标识符---------");
+            console.log(this.token);
+            this.refreshRandomCode();
+        },
+        methods: {
+            // 生成客户端token
+            async generateToken() {
+                try {
+                    const {nanoid} = await import('./js/nanoid/nanoid.js');
+                    this.token = nanoid(16);
+                } catch (e) {
+                    // 降级方案：如果nanoid加载失败，使用随机字符串
+                    this.token = Math.random().toString(36).substr(2, 16);
+                    console.warn("nanoid加载失败，使用降级token生成方案");
+                }
+            },
+            // 刷新验证码
+            refreshRandomCode: function () {
+                this.randomCodeUrl = baseUrl + '/commons/hutool/randomCode?token=' + this.token + '&tm=' + new Date().getTime();
+            },
+            // 登录逻辑
+            doLogin: function () {
+                console.log("执行用户登录....");
+                console.log("--------要登录的用户对象是---------")
+                console.log(this.loginUser);
+                login(this.loginUser, this.token, this.loginUser.randomCode).then(resp => {
+                    if (resp.code === 200) {
+                        toastr.success(resp.msg);
+                        console.log("--------登录成功之后的用户对象---------")
+                        console.log(resp.data);
+                        console.log("-----------服务器返回的令牌-------------")
+                        console.log(resp.token);
+                        window.outils.setCookie("currentToken",resp.token,30);
+                        window.outils.setCookie("currentUserName",resp.data.username,30);
+                        window.outils.setCookie("currentUserId", resp.data.uid, 30);
+                        window.outils.setCookie("currentUserRole", resp.data.role, 30);
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 1000)
+                    } else {
+                        toastr.error(resp.msg);
+                        this.refreshRandomCode(); // 登录失败刷新验证码
+                    }
+                }).catch(err => {
+                    toastr.error("登录请求失败，请检查网络或重试");
+                    console.error("登录接口异常：", err);
+                    this.refreshRandomCode();
+                })
+            },
+            // 注册逻辑
+            doReg: async function () {
+                console.log("执行用户注册....")
+                console.log("--------要注册的用户对象是---------")
+                console.log(this.regUser);
+
+                // 表单验证
+                if (!this.regUser.username) {
+                    toastr.error("请输入注册账号！");
+                    return;
+                }
+                if (this.regUser.password !== this.regUser.confirmPass) {
+                    toastr.error("两次输入的密码不一致！");
+                    return;
+                }
+                if (this.regUser.password.length < 6) {
+                    toastr.error("密码长度不能小于6位！");
+                    return;
+                }
+
+                // 检查用户名是否已注册
+                let canReg = true;
+                try {
+                    canReg = await checkUsernameIsReg(this.regUser.username);
+                    console.log("能否注册：" + canReg);
+                    if (!canReg) {
+                        toastr.error("用户名已经被注册！");
+                        return;
+                    }
+                } catch (e) {
+                    toastr.error("检查用户名失败，请重试");
+                    console.error("检查用户名异常：", e);
+                    return;
+                }
+
+                // 提交注册
+                reg(this.regUser).then(resp => {
+                    if (resp.code === 200) {
+                        toastr.success(resp.msg);
+                        setTimeout(() => {
+                            // 注册成功切换到登录选项卡
+                            $('#login-tab').tab('show');
+                            // 清空注册表单
+                            this.regUser = {username: "", password: "", confirmPass: ""};
+                        }, 1500)
+                    } else {
+                        toastr.error(resp.msg);
+                    }
+                }).catch(err => {
+                    toastr.error("注册请求失败，请检查网络或重试");
+                    console.error("注册接口异常：", err);
+                })
+            },
+            // 以下为用户管理相关方法（保留原有逻辑）
+            queryUsersListByPager: function (currentPageNum) {
+                console.log("当前要查询的分页编号是："+currentPageNum);
+                queryUserByPage(currentPageNum).then(resp => {
+                    if (resp.code === 200) {
+                        this.pager = resp.data;
+                        this.usersList = this.pager.records;
+                    } else {
+                        toastr.error(resp.msg);
+                    }
+                });
+            },
+            queryByBanji: function () {
+                if (!this.queryBanji.trim()) {
+                    toastr.warning("请输入要查询的班级名称！");
+                    return;
+                }
+                queryByBanji(this.queryBanji).then(resp => {
+                    if (resp.code === 200) {
+                        this.usersList = resp.data;
+                        this.pager = {
+                            total: resp.data.length,
+                            size: resp.data.length,
+                            current: 1,
+                            pages: 1,
+                            records: resp.data
+                        };
+                        toastr.success(`查询到 ${resp.data.length} 条数据`);
+                    } else if (resp.code === 404) {
+                        toastr.info("未查询到该班级的学生数据");
+                        this.usersList = [];
+                        this.pager.total = 0;
+                    } else {
+                        toastr.error("查询失败：" + resp.msg);
+                    }
+                }).catch(err => {
+                    toastr.error("网络异常，请稍后重试");
+                    console.error("查询接口异常：", err);
+                });
+            },
+            addUserInfo: async function () {
+                console.log("---------添加用户信息---------");
+                console.log(this.newUser);
+                let canAdd = true;
+                canAdd = await checkUsernameIsReg(this.newUser.username);
+                if (!canAdd) {
+                    toastr.error("用户名已经被注册！");
+                    return;
+                }
+                addUser(this.newUser).then(resp => {
+                    if (resp.code === 200) {
+                        toastr.success(resp.msg);
+                        this.queryUsersListByPager(1);
+                        this.newUser = {
+                            username: "",
+                            password: "",
+                            gender: "男",
+                            birthday: getCurrentDateString(),
+                            major: ""
+                        };
+                    } else {
+                        toastr.error(resp.msg);
+                    }
+                })
+            },
+            showEditUserModel: function (uid) {
+                console.log("要编辑的用户编号是：" + uid);
+                queryUserByUid(uid).then(resp => {
+                    if (resp.code === 200) {
+                        this.currentEditUser = resp.data;
+                    }
+                })
+            },
+            updateUserInfo: function () {
+                updateUser(this.currentEditUser).then(resp => {
+                    if (resp.code === 200) {
+                        toastr.success(resp.msg);
+                        this.queryUsersListByPager(1);
+                    } else {
+                        toastr.error(resp.msg);
+                    }
+                });
+            },
+            showDeleteModel: function (uid) {
+                this.currentDeleteUid = uid;
+                console.log("要删除的用户编号是：" + uid)
+            },
+            deleteUserInfo: function () {
+                deleteUserByUid(this.currentDeleteUid).then(resp => {
+                    if (resp.code === 200) {
+                        toastr.success(resp.msg);
+                        this.queryUsersListByPager(1);
+                    } else {
+                        toastr.error(resp.msg);
+                    }
+                });
+            },
+            doLogout: function () {
+                window.outils.removeCookie("currentUserName");
+                window.outils.removeCookie("currentToken");
+                toastr.success("注销成功！");
+                setTimeout(function () {
+                    window.location.href = "login.html";
+                }, 1000);
+            },
+            deleteBatchList:function(){
+                if(this.selectedUserIds.length>0){
+                    deleteBatch(this.selectedUserIds).then(resp=>{
+                        if(resp.code === 200){
+                            toastr.success(resp.msg);
+                            this.queryUsersListByPager(1);
+                            this.isSelectedAll=false;
+                        }else{
+                            toastr.error(resp.msg);
+                        }
+                    })
+                }else{
+                    toastr.error("请选择要删除的用户！");
+                }
+            },
+            changeSelectedAllStatus:function(){
+                this.isSelectedAll = !this.isSelectedAll;
+                if(this.isSelectedAll){
+                    this.selectedUserIds = [];
+                    for(let i=0;i<this.usersList.length;i++){
+                        this.selectedUserIds.push(this.usersList[i].uid);
+                    }
+                }else{
+                    this.selectedUserIds = [];
+                }
+            }
+        }
+    })
+</script>
+</body>
+</html>

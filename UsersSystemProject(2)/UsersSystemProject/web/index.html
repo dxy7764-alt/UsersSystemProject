@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>学生信息管理系统</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link href="css/toastr.min.css" type="text/css" rel="stylesheet"/>
+    <style>
+        /* 原有样式不变，此处省略（保留所有原有样式） */
+        body {
+            background-color: #f5f7fa;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        #app {
+            padding: 20px 0;
+        }
+        .header-nav {
+            background-color: #2c3e50;
+            color: #fff;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 8px 8px 0 0;
+            margin-bottom: 2px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .nav-logo {
+            font-size: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .nav-logo i {
+            font-size: 24px;
+        }
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .table-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background-color: #fff;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .table-title h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .action-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .search-box {
+            display: flex;
+            align-items: center;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid #e9ecef;
+        }
+        .action-group input {
+            height: 38px;
+            padding: 0 12px;
+            border: none;
+            background: transparent;
+            flex: 1;
+            font-size: 14px;
+        }
+        .action-group input:focus {
+            outline: none;
+            background-color: #fff;
+        }
+        .action-group button, .action-group a.btn {
+            height: 38px;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            border-radius: 4px;
+            font-size: 14px;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+        .btn-query {
+            border-radius: 0 4px 4px 0 !important;
+            background-color: #3498db;
+            border-color: #3498db;
+        }
+        .btn-query:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+        .btn-success {
+            background-color: #2ecc71;
+            border-color: #2ecc71;
+        }
+        .btn-success:hover {
+            background-color: #27ae60;
+            border-color: #27ae60;
+        }
+        .btn-danger {
+            background-color: #e74c3c;
+            border-color: #e74c3c;
+        }
+        .btn-danger:hover {
+            background-color: #c0392b;
+            border-color: #c0392b;
+        }
+        .btn-default {
+            background-color: #ecf0f1;
+            color: #34495e;
+            border-color: #bdc3c7;
+        }
+        .btn-default:hover {
+            background-color: #d5dbdb;
+            color: #2c3e50;
+            border-color: #acb4bc;
+        }
+        .table-wrapper {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        .table {
+            margin-bottom: 0;
+        }
+        .table thead th {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            font-weight: 600;
+            border-bottom: 2px solid #e9ecef;
+            vertical-align: middle;
+            text-align: center;
+        }
+        .table tbody td {
+            vertical-align: middle;
+            text-align: center;
+            color: #34495e;
+            border-bottom: 1px solid #e9ecef;
+            transition: background-color 0.2s ease;
+        }
+        .table tbody tr:hover td {
+            background-color: #fafafa;
+        }
+        .custom-checkbox {
+            position: relative;
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+        }
+        .custom-checkbox input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .custom-checkbox label {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 20px;
+            height: 20px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            background-color: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .custom-checkbox input:checked + label {
+            background-color: #3498db;
+            border-color: #3498db;
+        }
+        .custom-checkbox input:checked + label::after {
+            content: "\f00c";
+            font-family: "FontAwesome";
+            color: #fff;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+        }
+        .clearfix {
+            padding: 15px 20px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .hint-text {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        .pagination {
+            margin-bottom: 0;
+        }
+        .pagination .page-item .page-link {
+            color: #34495e;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px !important;
+            margin: 0 4px;
+            transition: all 0.2s ease;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: #3498db;
+            border-color: #3498db;
+            color: #fff;
+        }
+        .pagination .page-item .page-link:hover {
+            background-color: #f8f9fa;
+            border-color: #bdc3c7;
+        }
+        .modal-content {
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: none;
+        }
+        .modal-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            border-radius: 8px 8px 0 0;
+            padding: 15px 20px;
+        }
+        .modal-title {
+            color: #2c3e50;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .modal-body {
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        .form-control {
+            height: 38px;
+            border-radius: 4px;
+            border: 1px solid #bdc3c7;
+            transition: border-color 0.2s ease;
+        }
+        .form-control:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+            outline: none;
+        }
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #e9ecef;
+            border-radius: 0 0 8px 8px;
+            background-color: #f8f9fa;
+        }
+        .edit, .delete {
+            display: inline-block;
+            width: 36px;
+            height: 36px;
+            line-height: 36px;
+            border-radius: 50%;
+            text-align: center;
+            margin: 0 4px;
+            transition: all 0.2s ease;
+        }
+        .edit {
+            color: #3498db;
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+        .edit:hover {
+            color: #fff;
+            background-color: #3498db;
+            text-decoration: none;
+        }
+        .delete {
+            color: #e74c3c;
+            background-color: rgba(231, 76, 60, 0.1);
+        }
+        .delete:hover {
+            color: #fff;
+            background-color: #e74c3c;
+            text-decoration: none;
+        }
+        .toast-bottom-left {
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 350px;
+            z-index: 9999;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+            border-radius: 6px;
+        }
+        .badge-pink {
+            background-color: #e91e63;
+            color: #fff;
+        }
+        .pagination a {
+            cursor: pointer;
+        }
+        .custom-checkbox label {
+            cursor: pointer;
+        }
+        .text-danger {
+            color: #e74c3c !important;
+        }
+        /* 新增：普通用户隐藏复选框（无批量操作权限） */
+        .normal-user-hide {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="container-xl">
+        <div class="header-nav">
+            <div class="nav-left">
+                <div class="nav-logo">
+                    <i class="fa fa-graduation-cap"></i>
+                    <span>学生信息管理系统</span>
+                </div>
+            </div>
+            <div class="nav-user">
+                <span>欢迎您，</span>
+                <div class="nav-user-avatar">{{currentLoginUserName ? currentLoginUserName.charAt(0) : '未'}}</div>
+                <span id="loginSuccessUserInfo">{{currentLoginUserName || '未登录'}}</span>
+                <span v-if="currentUserRole === 'admin'" class="badge badge-primary ml-2">管理员</span>
+                <span v-else class="badge badge-secondary ml-2">普通用户</span>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <div class="table-wrapper">
+                <div class="table-title">
+                    <h2><i class="fa fa-table"></i> 学生基本信息</h2>
+                    <div class="action-group">
+                        <!-- 关键修改1：普通用户隐藏查询输入框（自动查自己班级），仅管理员可手动查询 -->
+                        <div class="search-box" v-if="currentUserRole === 'admin'">
+                            <input type="text" placeholder="输入班级名称查询" v-model="queryBanji">
+                            <button class="btn btn-primary btn-query" @click="queryByBanji">
+                                <i class="fa fa-search"></i> 查询
+                            </button>
+                        </div>
+                        <!-- 关键修改2：普通用户仅显示“当前班级”提示，不显示操作按钮 -->
+                        <div v-if="currentUserRole === 'normal' && currentUserBanji" class="text-muted">
+                            <i class="fa fa-class"></i> 当前查看：{{currentUserBanji}} 班级
+                        </div>
+                        <!-- 管理员保留新增/批量删除按钮，普通用户隐藏 -->
+                        <a href="#addEmployeeModal" class="btn btn-success" data-toggle="modal" v-if="currentUserRole === 'admin'">
+                            <i class="fa fa-plus"></i> 新增
+                        </a>
+                        <a href="#deleteAllEmployeeModal" class="btn btn-danger" data-toggle="modal" v-if="currentUserRole === 'admin'">
+                            <i class="fa fa-minus-circle"></i> 批量删除
+                        </a>
+                        <a href="#" @click="doLogout" class="btn btn-default">
+                            <i class="fa fa-sign-out"></i> 注销
+                        </a>
+                    </div>
+                </div>
+
+                <table class="table table-striped table-hover">
+                    <thead>
+                    <tr>
+                        <!-- 关键修改3：普通用户隐藏复选框（无批量操作权限） -->
+                        <th class="normal-user-hide" v-if="currentUserRole === 'normal'"></th>
+                        <th v-else>
+                            <span class="custom-checkbox">
+                                <input type="checkbox" id="selectAll" v-model="isSelectedAll" @click="changeSelectedAllStatus">
+                                <label for="selectAll"></label>
+                            </span>
+                        </th>
+                        <th style="width: 15%">姓名</th>
+                        <th style="width: 10%">性别</th>
+                        <th style="width: 20%">出生日期</th>
+                        <th style="width: 15%">专业</th>
+                        <th style="width: 15%">班级</th>
+                        <th style="width: 10%">成绩</th>
+                        <!-- 关键修改4：普通用户隐藏操作列 -->
+                        <th style="width: 10%" v-if="currentUserRole === 'admin'">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="user in usersList" :key="user.uid">
+                        <!-- 普通用户隐藏复选框 -->
+                        <td class="normal-user-hide" v-if="currentUserRole === 'normal'"></td>
+                        <td v-else>
+                            <span class="custom-checkbox">
+                                <input type="checkbox" :id="'checkbox'+user.uid" :value="user.uid" v-model="selectedUserIds">
+                                <label :for="'checkbox'+user.uid"></label>
+                            </span>
+                        </td>
+                        <td>{{user.username}}</td>
+                        <td>
+                            <span v-if="user.gender === '男'" class="badge badge-info">{{user.gender}}</span>
+                            <span v-else class="badge badge-pink">{{user.gender}}</span>
+                        </td>
+                        <td>{{user.birthday}}</td>
+                        <td>{{user.major}}</td>
+                        <td>{{user.banji}}</td>
+                        <td>
+                            <span v-if="Number(user.score) >= 90" class="badge badge-success">{{user.score}}</span>
+                            <span v-else-if="Number(user.score) >= 60" class="badge badge-warning">{{user.score}}</span>
+                            <span v-else class="badge badge-danger">{{user.score}}</span>
+                        </td>
+                        <!-- 仅管理员显示操作列 -->
+                        <td v-if="currentUserRole === 'admin'">
+                            <a href="#editEmployeeModal" @click="showEditUserModel(user.uid)" class="edit"
+                               data-toggle="modal">
+                                <i class="fa fa-edit" title="更新"></i>
+                            </a>
+                            <a href="#deleteEmployeeModal" @click="showDeleteModel(user.uid)" class="delete"
+                               data-toggle="modal">
+                                <i class="fa fa-trash" data-toggle="tooltip" title="删除"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <!-- 普通用户无数据提示 -->
+                    <tr v-if="usersList.length === 0 && currentUserRole === 'normal'">
+                        <td colspan="7" style="padding: 30px; color: #7f8c8d;">
+                            <i class="fa fa-info-circle"></i> 暂无{{currentUserBanji || '您的'}}班级学生信息
+                        </td>
+                    </tr>
+                    <!-- 管理员无数据提示 -->
+                    <tr v-if="usersList.length === 0 && currentUserRole !== 'normal'">
+                        <td colspan="8" style="padding: 30px; color: #7f8c8d;">
+                            <i class="fa fa-search-plus"></i> 暂无学生数据，请尝试其他查询条件或新增学生
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <div class="clearfix">
+                    <div class="hint-text">总记录：<b>{{pager.total || 0}}</b>&nbsp;&nbsp; 每页:
+                        <b>{{pager.size || 10}}</b> 条
+                    </div>
+                    <ul class="pagination">
+                        <li @click="pager.current > 1 && queryUsersListByPager(pager.current-1)"
+                            class="page-item" :class="{disabled: pager.current <= 1}">
+                            <a href="javascript:void(0);" class="page-link">上一页</a>
+                        </li>
+                        <li class="page-item" :class="{active:num===pager.current}" v-for="num in pager.pages || 1" :key="num">
+                            <a href="javascript:void(0);" @click="queryUsersListByPager(num)" class="page-link">{{num}}</a>
+                        </li>
+                        <li @click="pager.current < (pager.pages || 1) && queryUsersListByPager(pager.current+1)"
+                            class="page-item" :class="{disabled: pager.current >= (pager.pages || 1)}">
+                            <a href="javascript:void(0);" class="page-link">下一页</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态框部分保留（仅管理员可访问） -->
+    <div id="addEmployeeModal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form>
+                    <div class="modal-header">
+                        <h4 class="modal-title"><i class="fa fa-plus-circle"></i> 新增学生</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>用户名 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" required v-model="newUser.username" placeholder="请输入用户名">
+                        </div>
+                        <div class="form-group">
+                            <label>密码 <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" required v-model="newUser.password" placeholder="请输入密码">
+                        </div>
+                        <div class="form-group">
+                            <label>性别 <span class="text-danger">*</span></label>
+                            <div class="form-check form-check-inline">
+                                <input type="radio" name="gender" checked value="男" v-model="newUser.gender" class="form-check-input">
+                                <label class="form-check-label">男</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="radio" name="gender" value="女" v-model="newUser.gender" class="form-check-input">
+                                <label class="form-check-label">女</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>出生日期 <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="newUserBirthday" required
+                                   v-model="newUser.birthday"/>
+                        </div>
+                        <div class="form-group">
+                            <label>专业 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" required v-model="newUser.major" placeholder="请输入专业名称">
+                        </div>
+                        <div class="form-group">
+                            <label>班级 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" required v-model="newUser.banji" placeholder="请输入班级名称">
+                        </div>
+                        <div class="form-group">
+                            <label>成绩 <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" required v-model="newUser.score" min="0" max="100" placeholder="请输入0-100之间的成绩">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="button" class="btn btn-default" data-dismiss="modal" value="取消" >
+                        <input type="button" class="btn btn-success" @click="addUserInfo" value="新增" v-if="currentUserRole === 'admin'">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="editEmployeeModal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form>
+                    <div class="modal-header">
+                        <h4 class="modal-title"><i class="fa fa-pencil"></i> 编辑学生信息</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>用户名</label>
+                            <input type="text" class="form-control" readonly required
+                                   v-model="currentEditUser.username" style="background-color: #f8f9fa; cursor: not-allowed;">
+                        </div>
+                        <div class="form-group">
+                            <label>性别 <span class="text-danger">*</span></label>
+                            <div class="form-check form-check-inline">
+                                <input type="radio" name="editGender" value="男" v-model="currentEditUser.gender" class="form-check-input">
+                                <label class="form-check-label">男</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="radio" name="editGender" value="女" v-model="currentEditUser.gender" class="form-check-input">
+                                <label class="form-check-label">女</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>出生日期 <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" required
+                                   v-model="currentEditUser.birthday">
+                        </div>
+                        <div class="form-group">
+                            <label>专业 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" required
+                                   v-model="currentEditUser.major" placeholder="请输入专业名称">
+                        </div>
+                        <div class="form-group">
+                            <label>班级 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" required
+                                   v-model="currentEditUser.banji" placeholder="请输入班级名称">
+                        </div>
+                        <div class="form-group">
+                            <label>成绩 <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" required
+                                   v-model="currentEditUser.score" min="0" max="100" placeholder="请输入0-100之间的成绩">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="button" class="btn btn-default" data-dismiss="modal" value="取消">
+                        <input type="button" class="btn btn-info" value="更新" @click="updateUserInfo">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteEmployeeModal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form>
+                    <div class="modal-header">
+                        <h4 class="modal-title"><i class="fa fa-trash"></i> 删除学生</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-center">确定要删除该学生信息吗?</p>
+                        <p class="text-warning text-center"><small>该操作不可回滚，请谨慎操作！</small></p>
+                    </div>
+                    <div class="modal-footer justify-content-center">
+                        <input type="button" class="btn btn-default" data-dismiss="modal" value="取消">
+                        <input type="button" class="btn btn-danger" data-dismiss="modal" @click="deleteUserInfo"
+                               value="确认删除">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteAllEmployeeModal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form>
+                    <div class="modal-header">
+                        <h4 class="modal-title"><i class="fa fa-trash-o"></i> 批量删除学生</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-center">确定要删除选中的 {{selectedUserIds.length}} 名学生信息吗?</p>
+                        <p class="text-warning text-center"><small>该操作不可回滚，删除后数据将永久丢失！</small></p>
+                    </div>
+                    <div class="modal-footer justify-content-center">
+                        <input type="button" class="btn btn-default" data-dismiss="modal" value="取消">
+                        <input type="button" class="btn btn-danger" data-dismiss="modal" @click="deleteBatchList"
+                               value="确认删除">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="js/jquery.min.js"></script>
+<script src="js/toastr.min.js" type="application/javascript"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/outils.min.js"></script>
+<script src="js/myutil.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/vue.min.js"></script>
+<script src="js/axios.min.js"></script>
+<script src="api/baseUrl.js"></script>
+<script src="api/users.js"></script>
+
+<script>
+    (async function() {
+        let isLogin = await auth();
+        if (!isLogin) {
+            window.location.href = "login.html";
+        }
+    })();
+</script>
+
+<script>
+    var messageOpts = {
+        "closeButton": true,
+        "showDuration": "1000",
+        "hideDuration": "1000",
+        "positionClass": "toast-bottom-left",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut",
+        "allowHtml": true,
+        "timeOut": "2000",
+    };
+    toastr.options = messageOpts;
+
+    function getCurrentDateString() {
+        let date = new Date();
+        let year = date.getFullYear();
+        let month = (date.getMonth() + 1).toString().padStart(2, '0');
+        let day = date.getDate().toString().padStart(2, '0');
+        let dateString = `${year}-${month}-${day}`;
+        return dateString;
+    }
+</script>
+
+<script>
+    let vm = new Vue({
+        el: '#app',
+        data: {
+            currentLoginUserName: window.outils.getCookie("currentUserName") || '',
+            isSelectedAll: false,
+            selectedUserIds: [],
+            usersList: [],
+            pager: {
+                current: 1,
+                size: 10,
+                total: 0,
+                pages: 1,
+                records: []
+            },
+            newUser: {
+                username: "",
+                password: "",
+                gender: "男",
+                birthday: getCurrentDateString(),
+                major: "",
+                banji: "",
+                score: 0
+            },
+            currentEditUser: {
+                username: "",
+                password: "",
+                gender: "男",
+                birthday: getCurrentDateString(),
+                major: "",
+                banji: "",
+                score: 0
+            },
+            currentDeleteUid: -1,
+            queryBanji: "",
+            currentUserId: window.outils.getCookie("currentUserId") || '',
+            currentUserRole: window.outils.getCookie("currentUserRole") || '',
+            // 新增：存储当前普通用户的班级信息
+            currentUserBanji: ''
+        },
+        mounted() {
+            // 容错：Cookie获取失败时提示并跳转
+            if (!this.currentLoginUserName || !this.currentUserId) {
+                toastr.error("登录信息缺失，请重新登录");
+                setTimeout(() => window.location.href = "login.html", 1500);
+                return;
+            }
+
+            // 关键修改5：先获取当前用户的班级信息，再查询班级数据
+            this.getCurrentUserInfo().then(() => {
+                this.queryUsersListByPager(1);
+            });
+
+            if (!this.currentUserRole) {
+                toastr.warning("登录状态异常，请重新登录");
+                setTimeout(() => window.location.href = "login.html", 1000);
+            }
+            // 普通用户权限提示
+            if (this.currentUserRole === 'normal') {
+                toastr.info("普通用户仅可查看所在班级的学生信息，无修改/删除权限");
+            }
+        },
+        methods: {
+            // 新增方法：获取当前登录用户的详细信息（主要是班级）
+            getCurrentUserInfo: async function() {
+                try {
+                    const resp = await queryUserByUid(this.currentUserId);
+                    if (resp && resp.code === 200 && resp.data) {
+                        this.currentUserBanji = resp.data.banji || '';
+                    } else {
+                        toastr.error("获取个人信息失败：" + (resp?.msg || "接口异常"));
+                    }
+                } catch (err) {
+                    console.error("获取当前用户信息失败：", err);
+                    toastr.error("获取个人信息失败：网络异常");
+                }
+            },
+
+            queryUsersListByPager: function (currentPageNum) {
+                queryUserByPage(currentPageNum).then(resp => {
+                    if (resp && resp.code === 200 && resp.data) {
+                        this.pager = resp.data;
+                        let allRecords = this.pager.records || [];
+                        // 关键修改6：普通用户过滤「自己班级」的所有学生信息
+                        if (this.currentUserRole === 'normal' && this.currentUserBanji) {
+                            allRecords = allRecords.filter(user =>
+                                user.banji === this.currentUserBanji
+                            );
+                            // 更新分页信息
+                            this.pager.total = allRecords.length;
+                            this.pager.pages = allRecords.length > 0 ? 1 : 0;
+                        }
+                        this.usersList = allRecords;
+                    } else {
+                        toastr.error(resp?.msg || "分页查询返回格式异常");
+                    }
+                }).catch(err => {
+                    console.error("分页查询失败：", err);
+                    toastr.error("分页查询失败：网络异常");
+                });
+            },
+
+            queryByBanji: function () {
+                // 仅管理员可执行班级查询
+                if (this.currentUserRole !== 'admin') {
+                    toastr.error("普通用户无权限手动查询班级信息");
+                    return;
+                }
+                if (!this.queryBanji.trim()) {
+                    toastr.warning("请输入要查询的班级名称！");
+                    return;
+                }
+                queryByBanji(this.queryBanji).then(resp => {
+                    if (resp && resp.code === 200) {
+                        let resultList = resp.data || [];
+                        this.usersList = resultList;
+                        this.pager = {
+                            total: resultList.length,
+                            size: resultList.length,
+                            current: 1,
+                            pages: 1,
+                            records: resultList
+                        };
+                        toastr.success(`查询到 ${resultList.length} 条数据`);
+                    } else {
+                        toastr.info("未查询到该班级的学生数据");
+                        this.usersList = [];
+                        this.pager.total = 0;
+                    }
+                }).catch(err => {
+                    console.error("班级查询失败：", err);
+                    toastr.error("查询失败：网络异常");
+                });
+            },
+
+            // 关键修改7：加固权限——普通用户调用新增/修改/删除方法时直接拦截
+            addUserInfo: async function () {
+                if (this.currentUserRole !== 'admin') {
+                    toastr.error("普通用户无新增学生权限");
+                    $('#addEmployeeModal').modal('hide');
+                    return;
+                }
+                let canAdd = await checkUsernameIsReg(this.newUser.username);
+                if (!canAdd) {
+                    toastr.error("用户名已经被注册！");
+                    return;
+                }
+                addUser(this.newUser).then(resp => {
+                    if (resp && resp.code === 200) {
+                        toastr.success(resp.msg);
+                        this.queryUsersListByPager(1);
+                        this.newUser = {
+                            username: "",
+                            password: "",
+                            gender: "男",
+                            birthday: getCurrentDateString(),
+                            major: "",
+                            banji: "",
+                            score: 0
+                        };
+                        $('#addEmployeeModal').modal('hide');
+                    } else {
+                        toastr.error(resp?.msg || "新增失败");
+                    }
+                }).catch(err => {
+                    console.error("新增失败：", err);
+                    toastr.error("新增失败：网络异常");
+                });
+            },
+
+            showEditUserModel: function (uid) {
+                if (this.currentUserRole !== 'admin') {
+                    toastr.error("普通用户无编辑权限");
+                    return;
+                }
+                queryUserByUid(uid).then(resp => {
+                    if (resp && resp.code === 200 && resp.data) {
+                        this.currentEditUser = resp.data;
+                    } else {
+                        toastr.error("加载用户信息失败：" + (resp?.msg || "接口返回异常"));
+                    }
+                }).catch(err => {
+                    console.error("加载用户信息失败：", err);
+                    toastr.error("加载用户信息失败：网络异常");
+                });
+            },
+
+            updateUserInfo: function () {
+                if (this.currentUserRole !== 'admin') {
+                    toastr.error("普通用户无修改权限");
+                    $('#editEmployeeModal').modal('hide');
+                    return;
+                }
+                updateUser(this.currentEditUser).then(resp => {
+                    if (resp && resp.code === 200) {
+                        toastr.success(resp.msg);
+                        this.queryUsersListByPager(1);
+                        $('#editEmployeeModal').modal('hide');
+                    } else {
+                        toastr.error(resp?.msg || "更新失败");
+                    }
+                }).catch(err => {
+                    console.error("更新失败：", err);
+                    toastr.error("更新失败：网络异常");
+                });
+            },
+
+            showDeleteModel: function (uid) {
+                if (this.currentUserRole !== 'admin') {
+                    toastr.error("普通用户无删除权限");
+                    return;
+                }
+                this.currentDeleteUid = uid;
+            },
+
+            deleteUserInfo: function () {
+                if (this.currentUserRole !== 'admin') {
+                    toastr.error("普通用户无删除权限");
+                    return;
+                }
+                deleteUserByUid(this.currentDeleteUid).then(resp => {
+                    if (resp && resp.code === 200) {
+                        toastr.success(resp.msg);
+                        this.queryUsersListByPager(1);
+                        this.selectedUserIds = [];
+                        this.isSelectedAll = false;
+                    } else {
+                        toastr.error(resp?.msg || "删除失败");
+                    }
+                }).catch(err => {
+                    console.error("删除失败：", err);
+                    toastr.error("删除失败：网络异常");
+                });
+            },
+
+            doLogout: function () {
+                window.outils.removeCookie("currentUserName");
+                window.outils.removeCookie("currentToken");
+                window.outils.removeCookie("currentUserId");
+                window.outils.removeCookie("currentUserRole");
+                toastr.success("注销成功！");
+                setTimeout(function () {
+                    window.location.href = "login.html";
+                }, 1000);
+            },
+
+            deleteBatchList: function () {
+                if (this.currentUserRole !== 'admin') {
+                    toastr.error("普通用户无批量删除权限");
+                    $('#deleteAllEmployeeModal').modal('hide');
+                    return;
+                }
+                if (this.selectedUserIds.length === 0) {
+                    toastr.error("请选择要删除的用户！");
+                    $('#deleteAllEmployeeModal').modal('hide');
+                    return;
+                }
+                deleteBatch(this.selectedUserIds).then(resp => {
+                    if (resp && resp.code === 200) {
+                        toastr.success(resp.msg);
+                        this.queryUsersListByPager(1);
+                        this.isSelectedAll = false;
+                        this.selectedUserIds = [];
+                        $('#deleteAllEmployeeModal').modal('hide');
+                    } else {
+                        toastr.error(resp?.msg || "批量删除失败");
+                    }
+                }).catch(err => {
+                    console.error("批量删除失败：", err);
+                    toastr.error("批量删除失败：网络异常");
+                });
+            },
+
+            changeSelectedAllStatus: function () {
+                this.isSelectedAll = !this.isSelectedAll;
+                if (this.isSelectedAll) {
+                    this.selectedUserIds = this.usersList.map(user => user.uid);
+                } else {
+                    this.selectedUserIds = [];
+                }
+            }
+        }
+    });
+</script>
+</body>
+</html>
